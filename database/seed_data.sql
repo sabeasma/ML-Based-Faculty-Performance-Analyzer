@@ -2,6 +2,9 @@ USE faculty_analyzer;
 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE MLScores;
+TRUNCATE TABLE Notifications;
+TRUNCATE TABLE Reports;
+TRUNCATE TABLE CourseFeedback;
 TRUNCATE TABLE Feedback;
 TRUNCATE TABLE Attendance;
 TRUNCATE TABLE ResearchPublications;
@@ -181,12 +184,14 @@ BEGIN
       rating_knowledge,
       rating_interaction,
       rating_communication,
+      course_difficulty,
       comments,
       semester
     ) VALUES (
       sid,
       fid,
       subid,
+      2 + FLOOR(RAND() * 4),
       2 + FLOOR(RAND() * 4),
       2 + FLOOR(RAND() * 4),
       2 + FLOOR(RAND() * 4),
@@ -205,6 +210,47 @@ BEGIN
   END WHILE;
 END$$
 
+CREATE PROCEDURE seed_course_feedback()
+BEGIN
+  DECLARE i INT DEFAULT 1;
+  DECLARE sid INT;
+  DECLARE cid INT;
+
+  WHILE i <= 2000 DO
+    SET sid = 1 + FLOOR(RAND() * 1000);
+    SET cid = 1 + FLOOR(RAND() * 48);
+
+    INSERT INTO CourseFeedback (
+      student_id,
+      course_id,
+      rating_content,
+      rating_difficulty,
+      rating_resources,
+      rating_organization,
+      rating_overall,
+      comments,
+      semester
+    ) VALUES (
+      sid,
+      cid,
+      2 + FLOOR(RAND() * 4),
+      2 + FLOOR(RAND() * 4),
+      2 + FLOOR(RAND() * 4),
+      2 + FLOOR(RAND() * 4),
+      2 + FLOOR(RAND() * 4),
+      ELT(1 + FLOOR(RAND() * 4),
+        'Well-structured course',
+        'Could include more case studies',
+        'Resources were very helpful',
+        'Good pacing and organization'
+      ),
+      ELT(1 + FLOOR(RAND() * 4), '2024-ODD', '2024-EVEN', '2025-ODD', '2025-EVEN')
+    );
+
+    SET i = i + 1;
+  END WHILE;
+END$$
+
 DELIMITER ;
 
 CALL seed_faculty();
@@ -212,9 +258,57 @@ CALL seed_students();
 CALL seed_subjects();
 CALL seed_attendance_publications_scores();
 CALL seed_feedback();
+CALL seed_course_feedback();
 
 DROP PROCEDURE IF EXISTS seed_faculty;
 DROP PROCEDURE IF EXISTS seed_students;
 DROP PROCEDURE IF EXISTS seed_subjects;
 DROP PROCEDURE IF EXISTS seed_attendance_publications_scores;
 DROP PROCEDURE IF EXISTS seed_feedback;
+DROP PROCEDURE IF EXISTS seed_course_feedback;
+
+INSERT INTO Notifications (user_id, role, title, message, category)
+SELECT user_id, role,
+  CASE role
+    WHEN 'admin' THEN 'System update available'
+    WHEN 'hod' THEN 'New departmental feedback received'
+    WHEN 'faculty' THEN 'Your ranking has changed'
+    ELSE 'Feedback submission reminder'
+  END,
+  CASE role
+    WHEN 'admin' THEN 'ML model xgb-v1 metrics refreshed successfully.'
+    WHEN 'hod' THEN 'Fresh feedback entries were added for your department.'
+    WHEN 'faculty' THEN 'You have new feedback and performance trends to review.'
+    ELSE 'Please complete pending faculty and course feedback this week.'
+  END,
+  CASE role
+    WHEN 'admin' THEN 'ml'
+    WHEN 'hod' THEN 'feedback'
+    WHEN 'faculty' THEN 'ranking'
+    ELSE 'system'
+  END
+FROM Users
+WHERE role IN ('admin', 'hod', 'faculty', 'student')
+LIMIT 300;
+
+INSERT INTO Reports (generated_by, role, report_type, format, file_name, generated_for_department)
+SELECT u.user_id,
+  u.role,
+  CASE
+    WHEN u.role = 'admin' THEN 'faculty_performance'
+    ELSE 'department_performance'
+  END,
+  'csv',
+  CONCAT(
+    CASE
+      WHEN u.role = 'admin' THEN 'faculty_performance'
+      ELSE 'department_performance'
+    END,
+    '_',
+    u.user_id,
+    '.csv'
+  ),
+  u.department_id
+FROM Users u
+WHERE u.role IN ('admin', 'hod')
+LIMIT 30;

@@ -1,22 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import MetricCards from '../../components/common/MetricCards';
 import AnalyticsCharts from '../../components/common/AnalyticsCharts';
-import DataTable from '../../components/common/DataTable';
 import SectionCard from '../../components/common/SectionCard';
 import { contributionSplit, performanceTrend, skillRadar, subjectRatings } from '../../utils/chartData';
-import { getDashboardAdmin, getFacultyById, getFacultyList, getRankings } from '../../services/api';
+import { getDashboardAdmin, getFacultyById, getFacultyList } from '../../services/api';
 
 export default function AdminDashboard() {
   const [overview, setOverview] = useState(null);
-  const [rankings, setRankings] = useState([]);
   const [facultyList, setFacultyList] = useState([]);
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const [ov, rankRows, list] = await Promise.all([getDashboardAdmin(), getRankings(), getFacultyList()]);
+      const [ov, list] = await Promise.all([getDashboardAdmin(), getFacultyList()]);
       setOverview(ov);
-      setRankings(rankRows);
       setFacultyList(list);
       if (list.length > 0) {
         const details = await getFacultyById(list[0].faculty_id);
@@ -36,32 +33,9 @@ export default function AdminDashboard() {
     [overview]
   );
 
-  const rankingRows = rankings.map((item) => ({
-    id: item.faculty_id,
-    rank: item.rank ?? item.ranking,
-    facultyName: item.faculty_name,
-    department: item.department,
-    experience: `${item.years_of_experience} yrs`,
-    mlScore: <span className="font-semibold text-emerald-600">{item.ml_score}</span>,
-    trend: item.risk_level === 'low' ? 'Upward' : item.risk_level === 'medium' ? 'Stable' : 'Downward',
-  }));
-
   return (
     <div className="space-y-4">
       <MetricCards items={cards} />
-
-      <DataTable
-        title="Faculty Ranking Leaderboard"
-        columns={[
-          { key: 'rank', label: 'Rank' },
-          { key: 'facultyName', label: 'Faculty Name' },
-          { key: 'department', label: 'Department' },
-          { key: 'experience', label: 'Experience' },
-          { key: 'mlScore', label: 'ML Score' },
-          { key: 'trend', label: 'Trend' },
-        ]}
-        rows={rankingRows}
-      />
 
       {profile && (
         <SectionCard title="Faculty Profile Panel">

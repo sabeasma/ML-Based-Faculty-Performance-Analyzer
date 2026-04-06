@@ -31,6 +31,7 @@ export const roleMenus = {
     { label: 'AI Recommendations', path: '/faculty/ai-recommendations' },
   ],
   student: [
+    { label: 'Student Dashboard', path: '/student/dashboard' },
     { label: 'Faculty Feedback', path: '/student/feedback' },
     { label: 'Course Feedback', path: '/student/course-feedback' },
     { label: 'My Feedback History', path: '/student/history' },

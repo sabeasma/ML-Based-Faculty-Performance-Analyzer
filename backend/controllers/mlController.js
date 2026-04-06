@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { predictScore, getModelMetrics } = require('../services/mlClient');
+const { predictScore, getModelMetrics, triggerRetrain, getRetrainStatus } = require('../services/mlClient');
 
 async function getFacultyFeatures(facultyId) {
   const [rows] = await db.query(
@@ -73,6 +73,24 @@ exports.predictFacultyScore = async (req, res) => {
       ]
     );
 
+    const [[facultyUser]] = await db.query(
+      'SELECT user_id, department_id FROM Faculty WHERE faculty_id = ? LIMIT 1',
+      [targetFacultyId]
+    );
+
+    if (facultyUser) {
+      await db.query(
+        `
+        INSERT INTO Notifications (user_id, role, title, message, category)
+        VALUES (?, 'faculty', 'ML score updated', ?, 'ml')
+        `,
+        [
+          facultyUser.user_id,
+          `Your latest ML score is ${mlScore.toFixed(2)} for ${term}.`,
+        ]
+      );
+    }
+
     return res.json({
       faculty_id: targetFacultyId,
       semester: term,
@@ -89,28 +107,64 @@ exports.predictFacultyScore = async (req, res) => {
 
 exports.getFacultyRankings = async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const rawPage = Number.parseInt(req.query.page, 10);
+    const rawPageSize = Number.parseInt(req.query.pageSize ?? req.query.page_size, 10);
+    const semester = String(req.query.semester || '2025-ODD');
+
+    const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
+    const pageSize = Number.isInteger(rawPageSize) && rawPageSize > 0 ? Math.min(rawPageSize, 50) : 10;
+    const offset = (page - 1) * pageSize;
+
+    const [[countRow]] = await db.query(
       `
-      SELECT
-        ROW_NUMBER() OVER (ORDER BY ms.score DESC) AS ranking,
-        f.faculty_id,
-        u.full_name AS faculty_name,
-        d.name AS department,
-        f.years_of_experience,
-        ms.score AS ml_score,
-        ms.risk_level,
-        ms.promotion_eligible
-      FROM MLScores ms
-      JOIN Faculty f ON f.faculty_id = ms.faculty_id
-      JOIN Users u ON u.user_id = f.user_id
-      JOIN Departments d ON d.department_id = f.department_id
-      WHERE ms.predicted_for_semester = '2025-ODD'
-      ORDER BY ms.score DESC
-      LIMIT 100
-      `
+      SELECT COUNT(*) AS total
+      FROM MLScores
+      WHERE predicted_for_semester = ?
+      `,
+      [semester]
     );
 
-    return res.json(rows.map((row) => ({ ...row, rank: row.ranking })));
+    const total = Number(countRow?.total || 0);
+
+    const [rows] = await db.query(
+      `
+      WITH ranked AS (
+        SELECT
+          ROW_NUMBER() OVER (ORDER BY ms.score DESC, f.faculty_id ASC) AS ranking,
+          f.faculty_id,
+          u.full_name AS faculty_name,
+          d.name AS department,
+          f.years_of_experience,
+          ms.score AS ml_score,
+          ms.risk_level,
+          ms.promotion_eligible
+        FROM MLScores ms
+        JOIN Faculty f ON f.faculty_id = ms.faculty_id
+        JOIN Users u ON u.user_id = f.user_id
+        JOIN Departments d ON d.department_id = f.department_id
+        WHERE ms.predicted_for_semester = ?
+      )
+      SELECT *
+      FROM ranked
+      ORDER BY ranking ASC
+      LIMIT ? OFFSET ?
+      `,
+      [semester, pageSize, offset]
+    );
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    return res.json({
+      items: rows.map((row) => ({ ...row, rank: row.ranking })),
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages,
+      },
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Failed to fetch rankings', error: error.message });
   }
@@ -122,5 +176,23 @@ exports.getModelMetrics = async (_req, res) => {
     return res.json(metrics);
   } catch (error) {
     return res.status(500).json({ message: 'Failed to fetch model metrics', error: error.message });
+  }
+};
+
+exports.retrainModel = async (_req, res) => {
+  try {
+    const result = await triggerRetrain();
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to retrain model', error: error.message });
+  }
+};
+
+exports.getModelRetrainStatus = async (_req, res) => {
+  try {
+    const status = await getRetrainStatus();
+    return res.json(status);
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to fetch retrain status', error: error.message });
   }
 };

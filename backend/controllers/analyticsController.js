@@ -117,3 +117,40 @@ exports.facultyDashboard = async (req, res) => {
     return res.status(500).json({ message: 'Failed to fetch faculty dashboard', error: error.message });
   }
 };
+
+exports.studentOverview = async (req, res) => {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const [[studentRow]] = await db.query(
+      'SELECT student_id FROM Students WHERE user_id = ? LIMIT 1',
+      [req.user.userId]
+    );
+
+    if (!studentRow) {
+      return res.status(404).json({ message: 'Student profile not found' });
+    }
+
+    const [[summary]] = await db.query(
+      `
+      SELECT
+        COUNT(DISTINCT fb.subject_id) AS feedback_submitted,
+        COUNT(DISTINCT fb.faculty_id) AS faculty_reviewed
+      FROM Feedback fb
+      WHERE fb.student_id = ?
+      `,
+      [studentRow.student_id]
+    );
+
+    return res.json({
+      courses_enrolled: 6,
+      feedback_pending: Math.max(0, 6 - Number(summary.feedback_submitted || 0)),
+      feedback_submitted: Number(summary.feedback_submitted || 0),
+      faculty_reviewed: Number(summary.faculty_reviewed || 0),
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to fetch student dashboard', error: error.message });
+  }
+};

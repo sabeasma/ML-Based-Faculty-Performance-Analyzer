@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS Feedback (
   rating_knowledge TINYINT NOT NULL,
   rating_interaction TINYINT NOT NULL,
   rating_communication TINYINT NOT NULL,
+  course_difficulty TINYINT,
   comments VARCHAR(255),
   semester VARCHAR(30) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -76,6 +77,24 @@ CREATE TABLE IF NOT EXISTS Feedback (
   FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
     ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS CourseFeedback (
+  course_feedback_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  course_id INT NOT NULL,
+  rating_content TINYINT NOT NULL,
+  rating_difficulty TINYINT NOT NULL,
+  rating_resources TINYINT NOT NULL,
+  rating_organization TINYINT NOT NULL,
+  rating_overall TINYINT NOT NULL,
+  comments VARCHAR(255),
+  semester VARCHAR(30) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES Students(student_id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (course_id) REFERENCES Subjects(subject_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -114,6 +133,35 @@ CREATE TABLE IF NOT EXISTS MLScores (
   UNIQUE KEY uk_faculty_semester (faculty_id, predicted_for_semester),
   FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
     ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Notifications (
+  notification_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  role ENUM('admin', 'hod', 'faculty', 'student') NOT NULL,
+  title VARCHAR(150) NOT NULL,
+  message VARCHAR(255) NOT NULL,
+  category ENUM('feedback', 'ml', 'ranking', 'system', 'report', 'research') DEFAULT 'system',
+  is_read TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  read_at TIMESTAMP NULL,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Reports (
+  report_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  generated_by INT NOT NULL,
+  role ENUM('admin', 'hod') NOT NULL,
+  report_type ENUM('faculty_performance', 'department_performance', 'research_analytics', 'feedback_analytics') NOT NULL,
+  format ENUM('csv', 'pdf') DEFAULT 'csv',
+  file_name VARCHAR(180) NOT NULL,
+  generated_for_department INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (generated_by) REFERENCES Users(user_id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (generated_for_department) REFERENCES Departments(department_id)
+    ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 ALTER TABLE Departments

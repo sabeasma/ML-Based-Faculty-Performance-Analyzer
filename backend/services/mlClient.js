@@ -15,4 +15,14 @@ async function getModelMetrics() {
   return data;
 }
 
-module.exports = { predictScore, getModelMetrics };
+async function triggerRetrain() {
+  const { data } = await mlApi.post('/train');
+  return data;
+}
+
+async function getRetrainStatus() {
+  const { data } = await mlApi.get('/retrain-status');
+  return data;
+}
+
+module.exports = { predictScore, getModelMetrics, triggerRetrain, getRetrainStatus };

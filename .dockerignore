@@ -1,0 +1,11 @@
+.git
+.gitignore
+**/node_modules
+**/dist
+**/.cache
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/.env
+**/.DS_Store
+.vscode

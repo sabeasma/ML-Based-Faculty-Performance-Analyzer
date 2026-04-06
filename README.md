@@ -35,6 +35,7 @@ ml-faculty-analyzer/
       services/
       context/
       utils/
+      hooks/
   backend/
     controllers/
     routes/
@@ -52,6 +53,11 @@ ml-faculty-analyzer/
   database/
     schema.sql
     seed_data.sql
+  docker/
+    Dockerfile.frontend
+    Dockerfile.backend
+    Dockerfile.ml
+    docker-compose.yml
   docker-compose.yml
   README.md
 ```
@@ -93,6 +99,8 @@ Demo credentials:
 
 - POST /api/auth/login
 - POST /api/auth/register
+- POST /api/login
+- POST /api/register
 
 ### Faculty
 
@@ -110,6 +118,25 @@ Demo credentials:
 - POST /api/ml/predict-score
 - GET /api/ml/faculty-rankings
 - GET /api/ml/model-metrics
+- POST /api/predict-score
+- GET /api/faculty-rankings
+
+### Dashboard
+
+- GET /api/dashboard/admin
+- GET /api/dashboard/hod
+- GET /api/dashboard/faculty
+- GET /api/dashboard/student
+
+### Notifications
+
+- GET /api/notifications
+- POST /api/notifications/read
+
+### Reports
+
+- GET /api/reports
+- POST /api/reports/generate
 
 ### FastAPI ML service
 
@@ -150,6 +177,12 @@ From project root:
 
 ```bash
 docker compose up --build
+```
+
+Using the docker folder layout:
+
+```bash
+docker compose -f docker/docker-compose.yml up --build
 ```
 
 ## Suggested Demo Flow

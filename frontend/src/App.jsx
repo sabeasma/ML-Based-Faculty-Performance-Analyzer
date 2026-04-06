@@ -38,7 +38,7 @@ const roleHome = {
   admin: '/admin/dashboard',
   hod: '/hod/dashboard',
   faculty: '/faculty/my-performance',
-  student: '/student/feedback',
+  student: '/student/dashboard',
 };
 
 function ProtectedRoute({ role, children }) {
@@ -119,7 +119,7 @@ export default function App() {
       <Route path="/faculty/skill-analysis" element={<ProtectedRoute role="faculty"><DashboardShell><SkillAnalysis /></DashboardShell></ProtectedRoute>} />
       <Route path="/faculty/ai-recommendations" element={<ProtectedRoute role="faculty"><DashboardShell><AIRecommendations /></DashboardShell></ProtectedRoute>} />
 
-      <Route path="/student" element={<Navigate to="/student/feedback" replace />} />
+      <Route path="/student" element={<Navigate to="/student/dashboard" replace />} />
       <Route
         path="/student/dashboard"
         element={
