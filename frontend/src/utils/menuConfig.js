@@ -1,0 +1,38 @@
+export const roleMenus = {
+  admin: [
+    { label: 'Dashboard', path: '/admin/dashboard' },
+    { label: 'Faculty Management', path: '/admin/faculty-management' },
+    { label: 'Department Management', path: '/admin/department-management' },
+    { label: 'Performance Analytics', path: '/admin/performance-analytics' },
+    { label: 'Student Feedback Analysis', path: '/admin/feedback-analysis' },
+    { label: 'Research Publications', path: '/admin/research-publications' },
+    { label: 'Faculty Ranking', path: '/admin/faculty-ranking' },
+    { label: 'ML Insights', path: '/admin/ml-insights' },
+    { label: 'Reports', path: '/admin/reports' },
+    { label: 'User Management', path: '/admin/user-management' },
+    { label: 'Settings', path: '/admin/settings' },
+  ],
+  hod: [
+    { label: 'Department Dashboard', path: '/hod/dashboard' },
+    { label: 'Faculty List', path: '/hod/faculty' },
+    { label: 'Department Analytics', path: '/hod/department-analytics' },
+    { label: 'Feedback Analysis', path: '/hod/feedback-analysis' },
+    { label: 'Research Output', path: '/hod/research-output' },
+    { label: 'Department Rankings', path: '/hod/department-rankings' },
+    { label: 'ML Insights', path: '/hod/ml-insights' },
+    { label: 'Reports', path: '/hod/reports' },
+  ],
+  faculty: [
+    { label: 'My Performance', path: '/faculty/my-performance' },
+    { label: 'Student Feedback', path: '/faculty/student-feedback' },
+    { label: 'Attendance Metrics', path: '/faculty/attendance-metrics' },
+    { label: 'Research Profile', path: '/faculty/research-profile' },
+    { label: 'Skill Analysis', path: '/faculty/skill-analysis' },
+    { label: 'AI Recommendations', path: '/faculty/ai-recommendations' },
+  ],
+  student: [
+    { label: 'Faculty Feedback', path: '/student/feedback' },
+    { label: 'Course Feedback', path: '/student/course-feedback' },
+    { label: 'My Feedback History', path: '/student/history' },
+  ],
+};
