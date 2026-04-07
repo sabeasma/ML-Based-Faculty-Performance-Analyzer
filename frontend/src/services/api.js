@@ -4,6 +4,13 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
 });
 
+function unwrapResponse(payload, fallback = []) {
+  if (payload && Object.prototype.hasOwnProperty.call(payload, 'data')) {
+    return payload.data;
+  }
+  return payload ?? fallback;
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -33,13 +40,68 @@ export async function getHodOverview() {
 }
 
 export async function getFacultyList() {
-  const { data } = await api.get('/faculty');
-  return data;
+  const response = await api.get('/faculty');
+  return unwrapResponse(response.data, []);
+}
+
+export async function createFaculty(payload) {
+  const response = await api.post('/faculty', payload);
+  return unwrapResponse(response.data, {});
+}
+
+export async function updateFaculty(id, payload) {
+  const response = await api.put(`/faculty/${id}`, payload);
+  return unwrapResponse(response.data, {});
+}
+
+export async function deleteFaculty(id) {
+  const response = await api.delete(`/faculty/${id}`);
+  return unwrapResponse(response.data, {});
 }
 
 export async function getFacultyById(id) {
-  const { data } = await api.get(`/faculty/${id}`);
-  return data;
+  const response = await api.get(`/faculty/${id}`);
+  return unwrapResponse(response.data, {});
+}
+
+export async function getDepartments() {
+  const response = await api.get('/departments');
+  return unwrapResponse(response.data, []);
+}
+
+export async function createDepartment(payload) {
+  const response = await api.post('/departments', payload);
+  return unwrapResponse(response.data, {});
+}
+
+export async function updateDepartment(id, payload) {
+  const response = await api.put(`/departments/${id}`, payload);
+  return unwrapResponse(response.data, {});
+}
+
+export async function deleteDepartment(id) {
+  const response = await api.delete(`/departments/${id}`);
+  return unwrapResponse(response.data, {});
+}
+
+export async function getUsers() {
+  const response = await api.get('/users');
+  return unwrapResponse(response.data, []);
+}
+
+export async function createUser(payload) {
+  const response = await api.post('/users', payload);
+  return unwrapResponse(response.data, {});
+}
+
+export async function updateUser(id, payload) {
+  const response = await api.put(`/users/${id}`, payload);
+  return unwrapResponse(response.data, {});
+}
+
+export async function deleteUser(id) {
+  const response = await api.delete(`/users/${id}`);
+  return unwrapResponse(response.data, {});
 }
 
 export async function getRankingsPage(params = {}) {
@@ -105,8 +167,8 @@ export async function getSubjects(params = {}) {
 }
 
 export async function getDepartmentFaculty(departmentId) {
-  const { data } = await api.get(`/department/${departmentId}/faculty`);
-  return data;
+  const response = await api.get(`/faculty/department/${departmentId}`);
+  return unwrapResponse(response.data, []);
 }
 
 export async function getDashboardAdmin() {

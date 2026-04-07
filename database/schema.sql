@@ -28,6 +28,11 @@ CREATE TABLE IF NOT EXISTS Faculty (
   qualification VARCHAR(120) NOT NULL,
   years_of_experience INT NOT NULL,
   subjects_handled INT NOT NULL,
+  student_feedback_score DECIMAL(5,2) DEFAULT 0,
+  attendance_percentage DECIMAL(5,2) DEFAULT 0,
+  research_publications INT DEFAULT 0,
+  research_impact_score DECIMAL(6,2) DEFAULT 0,
+  ml_score DECIMAL(5,2) DEFAULT 0,
   course_difficulty_score DECIMAL(4,2) DEFAULT 3.00,
   joined_at DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -168,3 +173,9 @@ ALTER TABLE Departments
   ADD CONSTRAINT fk_departments_hod
   FOREIGN KEY (hod_user_id) REFERENCES Users(user_id)
   ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE Faculty ADD COLUMN IF NOT EXISTS student_feedback_score DECIMAL(5,2) DEFAULT 0;
+ALTER TABLE Faculty ADD COLUMN IF NOT EXISTS attendance_percentage DECIMAL(5,2) DEFAULT 0;
+ALTER TABLE Faculty ADD COLUMN IF NOT EXISTS research_publications INT DEFAULT 0;
+ALTER TABLE Faculty ADD COLUMN IF NOT EXISTS research_impact_score DECIMAL(6,2) DEFAULT 0;
+ALTER TABLE Faculty ADD COLUMN IF NOT EXISTS ml_score DECIMAL(5,2) DEFAULT 0;
