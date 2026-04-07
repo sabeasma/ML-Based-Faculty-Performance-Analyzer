@@ -30,7 +30,7 @@ const facultyBodyValidation = [
 	body('mlScore').optional().isFloat({ min: 0, max: 100 }).withMessage('ML score must be 0-100'),
 ];
 
-router.get('/', authenticate, authorize('admin', 'hod'), getFaculty);
+router.get('/', authenticate, authorize('admin', 'hod', 'student', 'faculty'), getFaculty);
 router.get('/my-performance', authenticate, authorize('faculty', 'admin', 'hod'), getMyPerformance);
 router.get('/department/:id', authenticate, authorize('admin', 'hod'), getFacultyByDepartment);
 router.get('/:id', authenticate, authorize('admin', 'hod'), param('id').isInt({ min: 1 }), validateRequest, getFacultyById);

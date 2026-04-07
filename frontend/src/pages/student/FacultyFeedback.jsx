@@ -129,7 +129,7 @@ export default function FacultyFeedback() {
               <option value="">Select faculty</option>
               {facultyOptions.map((faculty) => (
                 <option key={faculty.faculty_id} value={faculty.faculty_id}>
-                  {faculty.full_name} ({faculty.department})
+                  {faculty.name || faculty.full_name} ({faculty.department})
                 </option>
               ))}
             </select>
